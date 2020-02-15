@@ -125,7 +125,7 @@ class PerfTestParams:
                 {} \
                 session = rt.Session(\"{}\", so) \
                 ".format(self.get_graph_optimization_level(), 
-                "ORT_SEQUENTIAL" if self.args.parallel else "ORT_PARALLEL", 
+                "ORT_PARALLEL" if "-P" in self.test_args else "ORT_SEQUENTIAL", 
                 self.get_intra_threads_code_snippet(), 
                 self.get_inter_threads_code_snippet(), 
                 self.args.model)
@@ -221,7 +221,7 @@ def run_perf_tuning_binary(test_params, num_cores, name_suffix, desc_suffix, fai
         param.test_args = test_params.test_args + ["-x", str(lower)]
     else:
         param.updateEnv({"OMP_NUM_THREADS": str(lower)})
-        param.test_args = test_params.test_args
+        param.test_args = test_params.test_args + ["-x", "1"]
 
     run_perf_tuning(param)
     if not param.avg:
@@ -254,7 +254,7 @@ def run_perf_tuning_binary(test_params, num_cores, name_suffix, desc_suffix, fai
             param.test_args = test_params.test_args + ["-x", str(mid)]
         else:
             param.updateEnv({"OMP_NUM_THREADS": str(mid)})
-            param.test_args = test_params.test_args
+            param.test_args = test_params.test_args + ["-x", "1"]
         run_perf_tuning(param)
         if param.avg:
             successful_tests.append(param)
@@ -398,7 +398,7 @@ if __name__ == "__main__":
     bin_dir = os.path.join(os.path.dirname(__file__), "bin", args.config)
     build_dirs = os.listdir(bin_dir)
 
-    allProviders = ["mklml", "cpu_openmp", "dnnl", "cpu", "tensorrt", "ngraph", "cuda"]
+    allProviders = ["mklml", "dnnl", "cpu", "tensorrt", "ngraph", "cuda"]
     # Get all execution providers needed to run in current context
     providers = [p for p in args.execution_provider.split(",") if p != ""] if len(args.execution_provider) > 0 else allProviders
 
@@ -421,28 +421,29 @@ if __name__ == "__main__":
     profile_candidates = []
     failed = []
     for build_name in providers:
-        if "mklml" in build_name or "ngraph" in build_name:
-            build_path = os.path.join(bin_dir, build_name)
-        elif build_name in allProviders:
+        # if "mklml" in build_name or "ngraph" in build_name:
+        #     build_path = os.path.join(bin_dir, build_name)
+        # el
+        if build_name in allProviders:
             build_path = os.path.join(bin_dir, "all_eps")
         else:
             raise ValueError("Provider %s is not currently supported. \
-                Please choose one of cpu, cpu_openmp, dnnl, mklml, cuda, tensorrt or ngraph",
+                Please choose one of cpu, dnnl, mklml, cuda, tensorrt or ngraph",
                 build_name)
         if os.path.isdir(build_path):
             # If current build is requested by user, run perf tuning
-            test_args = []
+            test_args = ["-e", build_name]
             successful = []
             tests = []
 
-            if "dnnl" in build_name:
-                test_args = test_args + ["-e", "dnnl"]
-            if "cuda" in build_name:
-                test_args = test_args + ["-e", "cuda"]
-            if "tensorrt" in build_name:
-                test_args = test_args + ["-e", "tensorrt"]
-            if "ngraph" in build_name:
-                test_args = test_args + ["-e", "ngraph"]
+            # if "dnnl" in build_name:
+            #     test_args = test_args + ["-e", "dnnl"]
+            # if "cuda" in build_name:
+            #     test_args = test_args + ["-e", "cuda"]
+            # if "tensorrt" in build_name:
+            #     test_args = test_args + ["-e", "tensorrt"]
+            # if "ngraph" in build_name:
+            #     test_args = test_args + ["-e", "ngraph"]
             
             env_vars = ep_envvar_map.get(build_name)
             env_var_combos = get_env_var_combos(env_vars)
@@ -457,8 +458,10 @@ if __name__ == "__main__":
 
                 best_inter_op_num_threads = -1
                 best_intra_op_num_threads = -1
-                is_omp = "openmp" in build_name
+                is_omp = "dnnl" in build_name or "mklml" in build_name or "ngraph" in build_name
                 num_threads = int(args.intra_op_num_threads)
+                name_suffix = "_intra_threads" if not is_omp else "_OMP_threads"
+                desc_suffix = " intra_op_num_threads, " if not is_omp else " OMP_NUM_THREADS, "
                 if args.parallel and "cuda" not in build_name and "tensorrt" not in build_name:                 
                     # Tune environment variables and inter_op_num_threads using parallel executor 
                     best_inter_op_num_threads = run_perf_tuning_binary(
@@ -473,8 +476,6 @@ if __name__ == "__main__":
                         ), int(args.inter_op_num_threads), 
                         "_inter_threads" + env_option, 
                         " threads, " + env_option, failed, successful, is_omp, True)
-                    name_suffix = "_intra_threads"
-                    desc_suffix = " intra_op_num_threads, "
                     if best_inter_op_num_threads > 1:
                         # Store the best inter_op_num_threads in test args.
                         name_suffix += "_" + str(best_inter_op_num_threads) + "_inter_threads"
@@ -492,11 +493,13 @@ if __name__ == "__main__":
                         ), num_threads, 
                         name_suffix + env_option, 
                         desc_suffix + env_option, failed, successful, is_omp, False)
+                name_suffix = "_intra_threads" if not is_omp else "_OMP_threads"
+                desc_suffix = " intra_op_num_threads, " if not is_omp else " OMP_NUM_THREADS, "
                 if best_intra_op_num_threads > 1:
                     # Run the best thread pool candidate with environment variable on sequential executor
                     param = PerfTestParams(
-                        build_name + "_" + str(best_intra_op_num_threads) + "_intra_threads" + env_option,
-                        build_name + " " + str(best_intra_op_num_threads) + " intra_op_num_threads, " + env_option,
+                        build_name + "_" + str(best_intra_op_num_threads) + name_suffix + env_option,
+                        build_name + " " + str(best_intra_op_num_threads) + desc_suffix + env_option,
                         build_path,
                         test_args,
                         env.copy(),
@@ -505,7 +508,7 @@ if __name__ == "__main__":
                     )
                     if is_omp:
                         param.updateEnv({"OMP_NUM_THREADS": str(best_intra_op_num_threads)})
-                        # param.test_args += ["-x", str(best_run)]
+                        param.test_args += ["-x", "1"]
                     else:
                         param.test_args += ["-x", str(best_intra_op_num_threads)]
                     tests.append(param)
@@ -520,7 +523,7 @@ if __name__ == "__main__":
                             env.copy(),
                             args,
                             build_name
-                        ), num_threads, "_intra_threads" + env_option, " intra_op_num_threads, " + env_option, failed, successful, is_omp)
+                        ), num_threads, name_suffix + env_option, desc_suffix + env_option, failed, successful, is_omp)
                 # Tune environment variables using sequential executor
                 params = PerfTestParams(
                     build_name + env_option,
