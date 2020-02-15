@@ -103,8 +103,8 @@ if __name__ == "__main__":
     build_args = ["--parallel", "--use_dnnl", "--use_openmp"]
     
     if args.use_mklml:
-        build_args += ["--use_mklml"]
-        # build_onnxruntime(args.onnxruntime_home, args.config, ["--use_mklml", "--parallel"], "mklml", args)
+        # build_args += ["--use_mklml"]
+        build_onnxruntime(args.onnxruntime_home, args.config, ["--use_mklml", "--parallel", "--use_openmp"], "mklml", args)
     if args.use_ngraph:
         # build_onnxruntime(args.onnxruntime_home, args.config, ["--use_ngraph"], "ngraph", args)
         build_args += ["--use_ngraph"]

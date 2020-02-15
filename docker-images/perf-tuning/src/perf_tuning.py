@@ -421,10 +421,9 @@ if __name__ == "__main__":
     profile_candidates = []
     failed = []
     for build_name in providers:
-        # if "mklml" in build_name or "ngraph" in build_name:
-        #     build_path = os.path.join(bin_dir, build_name)
-        # el
-        if build_name in allProviders:
+        if "mklml" in build_name:
+            build_path = os.path.join(bin_dir, build_name)
+        elif build_name in allProviders:
             build_path = os.path.join(bin_dir, "all_eps")
         else:
             raise ValueError("Provider %s is not currently supported. \
