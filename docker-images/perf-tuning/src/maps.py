@@ -19,5 +19,11 @@ ep_envvar_map = {
     # Placeholder to tune environment variables based on execution provid
     "cpu_openmp": {
         "OMP_WAIT_POLICY": ["active", "passive"],
+        },
+    "dnnl": {
+        "OMP_WAIT_POLICY": ["active", "passive"],
+        },
+    "ngraph": {
+        "OMP_WAIT_POLICY": ["active", "passive"],
         }
 }

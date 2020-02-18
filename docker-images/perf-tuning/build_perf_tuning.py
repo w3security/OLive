@@ -65,11 +65,11 @@ def build_onnxruntime(onnxruntime_dir, config, build_args, build_name, args):
                 else:
                     copy(os.path.join(args.tensorrt_home, "lib/libnvinfer.so*"), target_dir)
                     copy(os.path.join(args.tensorrt_home, "lib/libnvinfer_plugin.so*"), target_dir)
-        if "ngraph" in build_name:
-            if is_windows():
-                pass
-            else:
-                copy(os.path.join(onnxruntime_dir, "build/Linux", config, "external/ngraph/lib/lib*.so*"), target_dir)
+            if args.use_ngraph:
+                if is_windows():
+                    pass
+                else:
+                    copy(os.path.join(onnxruntime_dir, "build/Linux", config, "external/ngraph/lib/lib*.so*"), target_dir)
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
