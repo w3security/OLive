@@ -421,9 +421,7 @@ if __name__ == "__main__":
     profile_candidates = []
     failed = []
     for build_name in providers:
-        if "mklml" in build_name:
-            build_path = os.path.join(bin_dir, build_name)
-        elif build_name in allProviders:
+        if build_name in allProviders:
             build_path = os.path.join(bin_dir, "all_eps")
         else:
             raise ValueError("Provider %s is not currently supported. \
@@ -434,15 +432,6 @@ if __name__ == "__main__":
             test_args = ["-e", build_name]
             successful = []
             tests = []
-
-            # if "dnnl" in build_name:
-            #     test_args = test_args + ["-e", "dnnl"]
-            # if "cuda" in build_name:
-            #     test_args = test_args + ["-e", "cuda"]
-            # if "tensorrt" in build_name:
-            #     test_args = test_args + ["-e", "tensorrt"]
-            # if "ngraph" in build_name:
-            #     test_args = test_args + ["-e", "ngraph"]
             
             env_vars = ep_envvar_map.get(build_name)
             env_var_combos = get_env_var_combos(env_vars)
@@ -494,35 +483,35 @@ if __name__ == "__main__":
                         desc_suffix + env_option, failed, successful, is_omp, False)
                 name_suffix = "_intra_threads" if not is_omp else "_OMP_threads"
                 desc_suffix = " intra_op_num_threads, " if not is_omp else " OMP_NUM_THREADS, "
-                if best_intra_op_num_threads > 1:
-                    # Run the best thread pool candidate with environment variable on sequential executor
-                    param = PerfTestParams(
-                        build_name + "_" + str(best_intra_op_num_threads) + name_suffix + env_option,
-                        build_name + " " + str(best_intra_op_num_threads) + desc_suffix + env_option,
+                # if best_intra_op_num_threads > 1:
+                #     # Run the best thread pool candidate with environment variable on sequential executor
+                #     param = PerfTestParams(
+                #         build_name + "_" + str(best_intra_op_num_threads) + name_suffix + env_option,
+                #         build_name + " " + str(best_intra_op_num_threads) + desc_suffix + env_option,
+                #         build_path,
+                #         test_args,
+                #         env.copy(),
+                #         args, 
+                #         build_name, 
+                #     )
+                #     if is_omp:
+                #         param.updateEnv({"OMP_NUM_THREADS": str(best_intra_op_num_threads)})
+                #         param.test_args += ["-x", "1"]
+                #     else:
+                #         param.test_args += ["-x", str(best_intra_op_num_threads)]
+                #     tests.append(param)
+                # else:
+                # Tune environment variables and thread pool size using sequential executor
+                run_perf_tuning_binary(
+                    PerfTestParams(
+                        build_name + "_",
+                        build_name + " ",
                         build_path,
                         test_args,
                         env.copy(),
-                        args, 
-                        build_name, 
-                    )
-                    if is_omp:
-                        param.updateEnv({"OMP_NUM_THREADS": str(best_intra_op_num_threads)})
-                        param.test_args += ["-x", "1"]
-                    else:
-                        param.test_args += ["-x", str(best_intra_op_num_threads)]
-                    tests.append(param)
-                else:
-                    # Tune environment variables and thread pool size using sequential executor
-                    run_perf_tuning_binary(
-                        PerfTestParams(
-                            build_name + "_",
-                            build_name + " ",
-                            build_path,
-                            test_args,
-                            env.copy(),
-                            args,
-                            build_name
-                        ), num_threads, name_suffix + env_option, desc_suffix + env_option, failed, successful, is_omp)
+                        args,
+                        build_name
+                    ), num_threads, name_suffix + env_option, desc_suffix + env_option, failed, successful, is_omp)
                 # Tune environment variables using sequential executor
                 params = PerfTestParams(
                     build_name + env_option,
