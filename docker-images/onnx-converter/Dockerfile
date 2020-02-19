@@ -18,7 +18,9 @@ COPY src/create_input.py src/create_input.py
 #     make -j $(nproc) install && \
 #     cd .. && \
 #     rm -rf openmpi-${OPENMPI_VERSION}
-RUN apt-get install openmpi-bin
+RUN apt-get -y update && \
+    apt-get -y -f install && \
+    apt-get install openmpi-bin
 ENV PATH /usr/local/mpi/bin:$PATH
 ENV LD_LIBRARY_PATH /usr/local/mpi/lib:$LD_LIBRARY_PATH
 
