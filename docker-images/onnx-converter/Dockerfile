@@ -20,9 +20,9 @@ COPY src/create_input.py src/create_input.py
 #     rm -rf openmpi-${OPENMPI_VERSION}
 RUN apt-get -y update && \
     apt-get -y -f install && \
-    apt-get install openmpi-bin
+    apt-get -y install openmpi-bin
 ENV PATH /usr/local/mpi/bin:$PATH
-ENV LD_LIBRARY_PATH /usr/local/mpi/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH /usr/local/mpi/lib:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 
 # Install Python Requirements
 RUN pip3 install --upgrade pip \ 
