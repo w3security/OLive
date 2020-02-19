@@ -22,7 +22,7 @@ RUN apt-get -y update && \
     apt-get -y -f install && \
     apt-get -y install openmpi-bin
 RUN ln -s /usr/lib/x86_64-linux-gnu/libmpi_cxx.so.40 /usr/lib/x86_64-linux-gnu/libmpi_cxx.so.1 && \
-    ln -s /usr/lib/x86_64-linux-gnu/libmpi.so.40.10.0 /usr/lib/x86_64-linux-gnu/libmpi.so.12
+    ln -s /usr/lib/x86_64-linux-gnu/libmpi.so.40.10.3 /usr/lib/x86_64-linux-gnu/libmpi.so.12
 ENV PATH /usr/local/mpi/bin:$PATH
 ENV LD_LIBRARY_PATH /usr/local/mpi/lib:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 
