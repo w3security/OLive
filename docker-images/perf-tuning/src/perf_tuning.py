@@ -401,6 +401,8 @@ if __name__ == "__main__":
     allProviders = ["mklml", "dnnl", "cpu", "tensorrt", "ngraph", "cuda", "nuphar"]
     # Get all execution providers needed to run in current context
     providers = [p for p in args.execution_provider.split(",") if p != ""] if len(args.execution_provider) > 0 else allProviders
+    parallel_eps = ["mklml", "dnnl", "cpu", "ngraph"]
+    omp_eps = ["mklml", "dnnl", "ngraph", "nuphar"]
 
     if len(GPUtil.getGPUs()) == 0:
         print("No GPU found on current device. Cuda and TensorRT performance tuning might not be available. ")
@@ -450,11 +452,11 @@ if __name__ == "__main__":
 
                 best_inter_op_num_threads = -1
                 best_thread_pool_size = -1
-                is_omp = "dnnl" in build_name or "mklml" in build_name or "ngraph" in build_name
+                is_omp = build_name in omp_eps
                 num_threads = int(args.intra_op_num_threads)
                 name_suffix = "_intra_threads" if not is_omp else "_OMP_threads"
                 desc_suffix = " intra_op_num_threads, " if not is_omp else " OMP_NUM_THREADS, "
-                if args.parallel and "cuda" not in build_name and "tensorrt" not in build_name:                 
+                if args.parallel and build_name in parallel_eps:                 
                     # Tune environment variables and inter_op_num_threads using parallel executor 
                     best_inter_op_num_threads = run_perf_tuning_binary(
                         PerfTestParams(

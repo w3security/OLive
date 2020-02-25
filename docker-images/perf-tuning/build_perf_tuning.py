@@ -111,9 +111,15 @@ if __name__ == "__main__":
     args = parse_arguments()
 
     build_args = ["--parallel", "--use_dnnl", "--use_openmp"]
-    
+    nuphar_args = []
+
+    if args.use_nuphar:
+        nuphar_args += ["--use_tvm", "--use_llvm", "--use_nuphar"]
+        if args.llvm_path:
+            nuphar_args = nuphar_args + ["--llvm_path", args.llvm_path]
     if args.use_mklml:
-        build_onnxruntime(args.onnxruntime_home, args.config, ["--use_mklml", "--parallel"], "mklml", args)
+        # Build mklml + nuphar in one build
+        build_onnxruntime(args.onnxruntime_home, args.config, ["--parallel", "--use_mklml"] + nuphar_args, "mklml", args)
     if args.use_ngraph:
         build_args += ["--use_ngraph"]
 
@@ -137,11 +143,6 @@ if __name__ == "__main__":
                 build_args = build_args + ["--cuda_home", args.cuda_home]
             if args.cudnn_home:
                 build_args = build_args + ["--cudnn_home", args.cudnn_home]
-
-    if args.use_nuphar:
-        build_args += ["--use_tvm", "--use_llvm", "--use_nuphar"]
-        if args.llvm_path:
-            build_args = build_args + ["--llvm_path", args.llvm_path]
 
     build_onnxruntime(args.onnxruntime_home, args.config, build_args, "all_eps", args)
 
