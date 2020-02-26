@@ -196,8 +196,9 @@ def run_perf_tuning(test_params, percentiles=False):
     print(test_params.name, test_params.avg)
 
 def run_perf_tuning_binary(test_params, num_cores, name_suffix, desc_suffix, failed_tests, successful_tests, is_omp=False, tune_inter_ops=False):
-    lower = 1 if tune_inter_ops == False else 2
-    upper = num_cores if is_omp else num_cores - 1
+    lower = 2
+    max_threads = num_cores if is_omp else num_cores - 1
+    upper = max_threads
     mid = lower + (upper - lower) // 2
     if lower > upper:
         return
@@ -237,6 +238,9 @@ def run_perf_tuning_binary(test_params, num_cores, name_suffix, desc_suffix, fai
     rerun = False 
     while lower <= upper:
         mid = lower + (upper - lower) // 2
+        if mid == 2 or mid == max_threads:
+            # Stop the binary search as it have already been run in the previous step
+            break
         # Run perf test
         param = PerfTestParams(
             test_params.name + str(mid) + name_suffix,
@@ -488,8 +492,8 @@ if __name__ == "__main__":
                             name_suffix += "_" + str(best_thread_pool_size) + "_inter_threads"
                             desc_suffix += str(best_thread_pool_size) + " inter_op_num_threads, "
                             params = PerfTestParams(
-                                build_name + "_parallel_" + str(best_thread_pool_size) + name_suffix,
-                                build_name + " " + str(best_thread_pool_size) + desc_suffix,
+                                build_name + "_parallel_" + str(best_thread_pool_size) + name_suffix + env_option,
+                                build_name + " " + str(best_thread_pool_size) + desc_suffix + env_option,
                                 build_path,
                                 test_args,
                                 env.copy(),
