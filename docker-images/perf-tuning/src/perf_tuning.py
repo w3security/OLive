@@ -197,7 +197,7 @@ def run_perf_tuning(test_params, percentiles=False):
 
 def run_perf_tuning_binary(test_params, num_cores, name_suffix, desc_suffix, failed_tests, successful_tests, is_omp=False, tune_inter_ops=False):
     lower = 1 if tune_inter_ops == False else 2
-    upper = num_cores
+    upper = num_cores if is_omp else num_cores - 1
     mid = lower + (upper - lower) // 2
     if lower > upper:
         return
@@ -254,6 +254,7 @@ def run_perf_tuning_binary(test_params, num_cores, name_suffix, desc_suffix, fai
             param.test_args = test_params.test_args + ["-x", str(mid)]
         else:
             param.updateEnv({"OMP_NUM_THREADS": str(mid)})
+            # Set "-x 1" to ensure openmp thread pool is used.
             param.test_args = test_params.test_args + ["-x", "1"]
         run_perf_tuning(param)
         if param.avg:
@@ -402,7 +403,7 @@ if __name__ == "__main__":
     # Get all execution providers needed to run in current context
     providers = [p for p in args.execution_provider.split(",") if p != ""] if len(args.execution_provider) > 0 else allProviders
     parallel_eps = ["mklml", "dnnl", "cpu", "ngraph"]
-    omp_eps = ["mklml", "dnnl", "ngraph", "nuphar"]
+    omp_eps = ["mlas_openmp", "mklml", "dnnl", "ngraph", "nuphar"]
 
     if len(GPUtil.getGPUs()) == 0:
         print("No GPU found on current device. Cuda and TensorRT performance tuning might not be available. ")
@@ -489,24 +490,6 @@ if __name__ == "__main__":
                         desc_suffix + env_option, failed, successful, is_omp, False)
                 name_suffix = "_intra_threads" if not is_omp else "_OMP_threads"
                 desc_suffix = " intra_op_num_threads, " if not is_omp else " OMP_NUM_THREADS, "
-                # if best_thread_pool_size > 1:
-                #     # Run the best thread pool candidate with environment variable on sequential executor
-                #     param = PerfTestParams(
-                #         build_name + "_" + str(best_thread_pool_size) + name_suffix + env_option,
-                #         build_name + " " + str(best_thread_pool_size) + desc_suffix + env_option,
-                #         build_path,
-                #         test_args,
-                #         env.copy(),
-                #         args, 
-                #         build_name, 
-                #     )
-                #     if is_omp:
-                #         param.updateEnv({"OMP_NUM_THREADS": str(best_thread_pool_size)})
-                #         param.test_args += ["-x", "1"]
-                #     else:
-                #         param.test_args += ["-x", str(best_thread_pool_size)]
-                #     tests.append(param)
-                # else:
                 # Tune environment variables and thread pool size using sequential executor
                 run_perf_tuning_binary(
                     PerfTestParams(
