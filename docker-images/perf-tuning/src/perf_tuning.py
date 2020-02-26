@@ -283,9 +283,9 @@ def get_env_var_combos(env_vars):
     all_combos = []
     for options in env_options_list:
         if len(all_combos) == 0:
-            all_combos = list(itertools.combinations(options + [""], 1))
+            all_combos = list(itertools.combinations(options, 1))
         else:
-            nested_combo = list(itertools.product(all_combos, options + [""]))
+            nested_combo = list(itertools.product(all_combos, options))
             # flatten if necessary
             all_combos = []
             for combo in nested_combo:
