@@ -457,6 +457,17 @@ if __name__ == "__main__":
                 num_threads = int(args.intra_op_num_threads)
                 name_suffix = "_intra_threads" if not is_omp else "_OMP_threads"
                 desc_suffix = " intra_op_num_threads, " if not is_omp else " OMP_NUM_THREADS, "
+                # Tune environment variables and thread pool size using sequential executor
+                best_thread_pool_size = run_perf_tuning_binary(
+                    PerfTestParams(
+                        build_name + "_",
+                        build_name + " ",
+                        build_path,
+                        test_args,
+                        env.copy(),
+                        args,
+                        build_name
+                    ), num_threads, name_suffix + env_option, desc_suffix + env_option, failed, successful, is_omp)
                 if args.parallel and build_name in parallel_eps:                 
                     # Tune environment variables and inter_op_num_threads using parallel executor 
                     best_inter_op_num_threads = run_perf_tuning_binary(
@@ -473,34 +484,38 @@ if __name__ == "__main__":
                         " threads, " + env_option, failed, successful, is_omp, True)
                     if best_inter_op_num_threads > 1:
                         # Store the best inter_op_num_threads in test args.
-                        name_suffix += "_" + str(best_inter_op_num_threads) + "_inter_threads"
-                        desc_suffix += str(best_inter_op_num_threads) + " inter_op_num_threads, "
-                    # tune intra_op_num_threads in parallel execution mode.
-                    best_thread_pool_size = run_perf_tuning_binary(
-                        PerfTestParams(
-                            build_name + "_parallel_",
-                            build_name + " ",
-                            build_path,
-                            test_args + ["-P", "-y", str(best_inter_op_num_threads) if best_inter_op_num_threads > 1 else "0"],
-                            env.copy(),
-                            args,
-                            build_name,
-                        ), num_threads, 
-                        name_suffix + env_option, 
-                        desc_suffix + env_option, failed, successful, is_omp, False)
-                name_suffix = "_intra_threads" if not is_omp else "_OMP_threads"
-                desc_suffix = " intra_op_num_threads, " if not is_omp else " OMP_NUM_THREADS, "
-                # Tune environment variables and thread pool size using sequential executor
-                run_perf_tuning_binary(
-                    PerfTestParams(
-                        build_name + "_",
-                        build_name + " ",
-                        build_path,
-                        test_args,
-                        env.copy(),
-                        args,
-                        build_name
-                    ), num_threads, name_suffix + env_option, desc_suffix + env_option, failed, successful, is_omp)
+                        if best_thread_pool_size > 1:
+                            name_suffix += "_" + str(best_thread_pool_size) + "_inter_threads"
+                            desc_suffix += str(best_thread_pool_size) + " inter_op_num_threads, "
+                            params = PerfTestParams(
+                                build_name + "_parallel_" + str(best_thread_pool_size) + name_suffix,
+                                build_name + " " + str(best_thread_pool_size) + desc_suffix,
+                                build_path,
+                                test_args,
+                                env.copy(),
+                                args,
+                                build_name)
+                            if is_omp:
+                                param.updateEnv({"OMP_NUM_THREADS": str(best_thread_pool_size)})
+                                param.test_args += ["-x", "1"]
+                            else:
+                                param.test_args += ["-x", str(best_thread_pool_size)]
+                            tests.append(params)
+                        else:           
+                            # tune intra_op_num_threads in parallel execution mode.
+                            run_perf_tuning_binary(
+                                PerfTestParams(
+                                    build_name + "_parallel_",
+                                    build_name + " ",
+                                    build_path,
+                                    test_args + ["-P", "-y", str(best_inter_op_num_threads) if best_inter_op_num_threads > 1 else "1"],
+                                    env.copy(),
+                                    args,
+                                    build_name,
+                                ), num_threads, 
+                                name_suffix + env_option, 
+                                desc_suffix + env_option, failed, successful, is_omp, False)
+
                 # Tune environment variables using sequential executor
                 params = PerfTestParams(
                     build_name + env_option,
