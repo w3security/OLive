@@ -412,11 +412,11 @@ if __name__ == "__main__":
     bin_dir = os.path.join(os.path.dirname(__file__), "bin", args.config)
     build_dirs = os.listdir(bin_dir)
 
-    allProviders = ["mlas_openmp", "mklml", "dnnl", "cpu", "tensorrt", "ngraph", "cuda", "nuphar"]
+    allProviders = ["cpu_openmp", "mklml", "dnnl", "cpu", "tensorrt", "ngraph", "cuda", "nuphar"]
     # Get all execution providers needed to run in current context
     providers = [p for p in args.execution_provider.split(",") if p != ""] if len(args.execution_provider) > 0 else allProviders
-    parallel_eps = ["mlas_openmp", "mklml", "dnnl", "cpu", "ngraph"]
-    omp_eps = ["mlas_openmp", "mklml", "dnnl", "ngraph", "nuphar"]
+    parallel_eps = ["cpu_openmp", "mklml", "dnnl", "cpu", "ngraph"]
+    omp_eps = ["cpu_openmp", "mklml", "dnnl", "ngraph", "nuphar"]
 
     if len(GPUtil.getGPUs()) == 0:
         print("No GPU found on current device. Cuda and TensorRT performance tuning might not be available. ")
@@ -448,7 +448,7 @@ if __name__ == "__main__":
         if os.path.isdir(build_path):
             # If current build is requested by user, run perf tuning
             test_args = []
-            if "mklml" not in build_name and "mlas_openmp" not in build_name:
+            if "mklml" not in build_name and "cpu_openmp" not in build_name:
                 test_args = ["-e", build_name]
             successful = []
             tests = []
