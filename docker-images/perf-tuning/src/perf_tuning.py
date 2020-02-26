@@ -496,10 +496,10 @@ if __name__ == "__main__":
                                 args,
                                 build_name)
                             if is_omp:
-                                param.updateEnv({"OMP_NUM_THREADS": str(best_thread_pool_size)})
-                                param.test_args += ["-x", "1"]
+                                params.updateEnv({"OMP_NUM_THREADS": str(best_thread_pool_size)})
+                                params.test_args += ["-x", "1"]
                             else:
-                                param.test_args += ["-x", str(best_thread_pool_size)]
+                                params.test_args += ["-x", str(best_thread_pool_size)]
                             tests.append(params)
                         else:           
                             # tune intra_op_num_threads in parallel execution mode.
