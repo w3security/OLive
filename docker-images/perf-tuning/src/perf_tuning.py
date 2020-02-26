@@ -197,8 +197,7 @@ def run_perf_tuning(test_params, percentiles=False):
 
 def run_perf_tuning_binary(test_params, num_cores, name_suffix, desc_suffix, failed_tests, successful_tests, is_omp=False, tune_inter_ops=False):
     lower = 2
-    max_threads = num_cores if is_omp else num_cores - 1
-    upper = max_threads
+    upper = num_cores if is_omp else num_cores - 1
     mid = lower + (upper - lower) // 2
     if lower > upper:
         return
@@ -238,7 +237,7 @@ def run_perf_tuning_binary(test_params, num_cores, name_suffix, desc_suffix, fai
     rerun = False 
     while lower <= upper:
         mid = lower + (upper - lower) // 2
-        if mid == 2 or mid == max_threads:
+        if mid == 2:
             # Stop the binary search as it have already been run in the previous step
             break
         # Run perf test
