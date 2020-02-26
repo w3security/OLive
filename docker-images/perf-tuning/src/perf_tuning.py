@@ -104,6 +104,15 @@ class PerfTestParams:
         if index + 1 >= len(self.test_args):
             return ""
         return "so.intra_op_num_threads = " + self.test_args[index + 1]
+    
+    def get_execution_provider_name(self):
+        try:
+            index = self.test_args.index("-e")
+        except ValueError:
+            return "CPUExecutionProvider"
+        if index + 1 >= len(self.test_args):
+            return ""
+        return self.test_args[index + 1].upper() + "ExecutionProvider"
 
     def print_args(self, args):
         if self.env.get("OMP_WAIT_POLICY"):
@@ -123,12 +132,13 @@ class PerfTestParams:
                 so.execution_mode = rt.ExecutionMode.{} \
                 {} \
                 {} \
-                session = rt.Session(\"{}\", so) \
+                session = rt.Session(\"{}\", so, providers=[\"{}\"]) \
                 ".format(self.get_graph_optimization_level(), 
                 "ORT_PARALLEL" if "-P" in self.test_args else "ORT_SEQUENTIAL", 
                 self.get_intra_threads_code_snippet(), 
                 self.get_inter_threads_code_snippet(), 
-                self.args.model)
+                self.args.model, 
+                self.get_execution_provider_name())
         }
         return code_snippet
 
