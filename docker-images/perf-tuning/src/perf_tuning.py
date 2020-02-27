@@ -152,6 +152,8 @@ def run_perf_tuning(test_params, percentiles=False):
         test_args = test_params.get_percentiles_args(result_file)
     else:
         test_args = test_params.get_args(result_file)
+
+    print("~~~~~~~~~~ test params env = ", test_params.env)
     perf_tuning = subprocess.run(test_args, env=test_params.env, capture_output=True)
     # The first run was warmup.
     remove(result_file)
@@ -504,7 +506,7 @@ if __name__ == "__main__":
                                 build_name + "_parallel_" + str(best_thread_pool_size) + name_suffix + env_option,
                                 build_name + " " + str(best_thread_pool_size) + desc_suffix + env_option,
                                 build_path,
-                                test_args,
+                                test_args + ["-P", "-y", str(best_inter_op_num_threads)],
                                 env.copy(),
                                 args,
                                 build_name)
@@ -514,20 +516,6 @@ if __name__ == "__main__":
                             else:
                                 params.test_args += ["-x", str(best_thread_pool_size)]
                             tests.append(params)
-                        else:           
-                            # tune intra_op_num_threads in parallel execution mode.
-                            run_perf_tuning_binary(
-                                PerfTestParams(
-                                    build_name + "_parallel_",
-                                    build_name + " ",
-                                    build_path,
-                                    test_args + ["-P", "-y", str(best_inter_op_num_threads) if best_inter_op_num_threads > 1 else "1"],
-                                    env.copy(),
-                                    args,
-                                    build_name,
-                                ), num_threads, 
-                                name_suffix + env_option, 
-                                desc_suffix + env_option, failed, successful, is_omp, False)
 
                 # Tune environment variables using sequential executor
                 params = PerfTestParams(
