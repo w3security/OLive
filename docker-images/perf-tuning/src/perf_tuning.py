@@ -466,7 +466,7 @@ if __name__ == "__main__":
                         build_name + " ",
                         build_path,
                         test_args + ["-P"],
-                        env.copy(),
+                        {},
                         args,
                         build_name,
                     ), int(args.inter_op_num_threads), 
