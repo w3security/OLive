@@ -425,14 +425,14 @@ if __name__ == "__main__":
     
     # Start perf tuning. Strategy is as follows:
     # 1. Loop for every pre-built execution provider
-    # 2. For every ep, loop through all environment variable combinations (including no set env var). 
-    # 3. Inside each environment variable combo, 
-    #  - if parallel execution mode is used, 
-    #    (1) Tune inter_op_num_threads. Pick the best.
-    #    (2) With the best picked in step(1), tune intra_op_num_threads. Pick the best.
-    #    (3) With the best picked in step(2), run in sequential execution mode. 
-    #  - if sequential execution mode is used, tune intra_op_num_threads and pick the best.
-    # 4. Store and profile the top n candidates.
+    # 2. If parallel execution mode is used, binary tune inter_op_num_threads. Pick the best.
+    # 3. Loop through all environment variable combinations. 
+    # 4. Inside each environment variable combo, 
+    #    (1) Binary tune intra_op_num_threads/OMP_NUM_THREADS in sequential execution mode. Pick the best.
+    #    (2) With the best picked in step 2 and 4-(1), add the best combo of intra/inter op num threads to perf tuning candidates.
+    #    (3) Add the default settings to perf tuning candidates. 
+    # 5. Run all candidates and select the top n candidates with best performance for each execution provider. 
+    #    Store and profile those candidates.
     successful_by_ep = dict()
     profile_candidates = []
     failed = []
@@ -452,14 +452,9 @@ if __name__ == "__main__":
                 test_args = ["-e", build_name]
             successful = []
             tests = []
-            
-            env_vars = ep_envvar_map.get(build_name)
-            env_var_combos = get_env_var_combos(env_vars)
-            env_names = list(env_vars.keys()) if env_vars is not None else []
-            
+            # Tune inter_op_num_threads using parallel execution mode with default environment variables. 
             best_inter_op_num_threads = -1
             if args.parallel and build_name in parallel_eps:                 
-                # Tune inter_op_num_threads using parallel executor 
                 best_inter_op_num_threads = run_perf_tuning_binary(
                     PerfTestParams(
                         build_name + "_parallel_",
@@ -473,6 +468,9 @@ if __name__ == "__main__":
                     "_inter_threads", 
                     " threads, ", failed, successful, False, True)
 
+            env_vars = ep_envvar_map.get(build_name)
+            env_var_combos = get_env_var_combos(env_vars)
+            env_names = list(env_vars.keys()) if env_vars is not None else []
             # Tune all possible combinations of environment variables, including defaults
             for combo in env_var_combos:
                 # generate env var dict {env_var_name: env_var_option}. 
@@ -516,19 +514,8 @@ if __name__ == "__main__":
                         else:
                             params.test_args += ["-x", str(best_thread_pool_size)]
                         tests.append(params)
-                    else:
-                        run_perf_tuning_binary(
-                            PerfTestParams(
-                                build_name + "_parallel",
-                                build_name + " ",
-                                build_path,
-                                test_args + ["-P", "-y", str(best_inter_op_num_threads)],
-                                env.copy(),
-                                args,
-                                build_name
-                            ), num_threads, name_suffix + env_option, desc_suffix + env_option, failed, successful, is_omp)
 
-                # Tune environment variables using sequential executor
+                # Tune environment variables using sequential executor with default thread settings
                 params = PerfTestParams(
                     build_name + env_option,
                     build_name + " " + env_option,
