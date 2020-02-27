@@ -471,7 +471,7 @@ if __name__ == "__main__":
                         build_name,
                     ), int(args.inter_op_num_threads), 
                     "_inter_threads", 
-                    " threads, ", failed, successful, is_omp, True)
+                    " threads, ", failed, successful, False, True)
 
             # Tune all possible combinations of environment variables, including defaults
             for combo in env_var_combos:
