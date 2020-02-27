@@ -118,7 +118,7 @@ class PerfTestParams:
         if self.env.get("OMP_WAIT_POLICY"):
             print("OMP_WAIT_POLICY=" + self.env["OMP_WAIT_POLICY"])
         if self.env.get("OMP_NUM_THREADS"):
-            print("OMP_NUM_THREADS=" + self.env["OMP_NUM_THREADS"])
+            print("OMP_NUM_THREADS=" + str(self.env["OMP_NUM_THREADS"]))
         print(" ".join(args))
 
     def gen_code_snippet(self):
@@ -232,7 +232,7 @@ def run_perf_tuning_binary(test_params, num_cores, name_suffix, desc_suffix, fai
     elif not is_omp:
         param.test_args = test_params.test_args + ["-x", str(lower)]
     else:
-        param.updateEnv({"OMP_NUM_THREADS": str(lower)})
+        param.updateEnv({"OMP_NUM_THREADS": lower})
         param.test_args = test_params.test_args + ["-x", "1"]
 
     run_perf_tuning(param)
@@ -268,7 +268,7 @@ def run_perf_tuning_binary(test_params, num_cores, name_suffix, desc_suffix, fai
         elif not is_omp:
             param.test_args = test_params.test_args + ["-x", str(mid)]
         else:
-            param.updateEnv({"OMP_NUM_THREADS": str(mid)})
+            param.updateEnv({"OMP_NUM_THREADS": mid})
             # Set "-x 1" to ensure openmp thread pool is used.
             param.test_args = test_params.test_args + ["-x", "1"]
         run_perf_tuning(param)
@@ -511,7 +511,7 @@ if __name__ == "__main__":
                                 args,
                                 build_name)
                             if is_omp:
-                                params.updateEnv({"OMP_NUM_THREADS": str(best_thread_pool_size)})
+                                params.updateEnv({"OMP_NUM_THREADS": best_thread_pool_size})
                                 params.test_args += ["-x", "1"]
                             else:
                                 params.test_args += ["-x", str(best_thread_pool_size)]
