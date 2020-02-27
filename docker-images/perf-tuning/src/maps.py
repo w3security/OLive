@@ -11,7 +11,7 @@ ep_graphOptimizer_map = {
 
 ep_envvar_map = {
     # Placeholder to tune environment variables based on execution provider
-    "mlas_openmp": {
+    "cpu_openmp": {
         "OMP_WAIT_POLICY": ["active", "passive"],
         },
     "dnnl": {
