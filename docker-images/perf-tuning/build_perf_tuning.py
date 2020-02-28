@@ -36,6 +36,7 @@ def build_onnxruntime(onnxruntime_dir, config, build_args, build_name, args):
                 copy(os.path.join(args.cudnn_home, "bin/cudnn*.dll"), target_dir)
             if args.use_tensorrt:
                 copy(os.path.join(args.tensorrt_home, "lib/nvinfer.dll"), target_dir)
+        else:
             if "--use_tvm" in build_args:
                 copy(os.path.join(onnxruntime_dir, "build", "Windows", config, config, "tvm.dll"), target_dir)
             if "--use_nuphar" in build_args:
@@ -74,6 +75,7 @@ def build_onnxruntime(onnxruntime_dir, config, build_args, build_name, args):
                     pass
                 else:
                     copy(os.path.join(onnxruntime_dir, "build/Linux", config, "external/ngraph/lib/lib*.so*"), target_dir)
+        if "mklml" in build_name:
             if "--use_tvm" in build_args:
                 copy(os.path.join(onnxruntime_dir, "build/Linux", config, "external", "tvm", "libtvm.so*"), target_dir)
             if "--use_nuphar" in build_args:

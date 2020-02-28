@@ -209,10 +209,10 @@ def run_perf_tuning_binary(test_params, num_cores, name_suffix, desc_suffix, fai
     lower = 2
     upper = num_cores if is_omp else num_cores - 1
     mid = lower + (upper - lower) // 2
-    if lower > upper:
-        return
-    best_latency = float("inf")
     best_run = -1
+    if lower > upper:
+        return best_run
+    best_latency = float("inf")
 
     # Run with lowest number of cores to get a baseline of latency
     param = PerfTestParams(
