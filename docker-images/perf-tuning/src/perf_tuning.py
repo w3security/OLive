@@ -30,10 +30,10 @@ class PerfTestParams:
         
         self.env = os.environ.copy()
         if is_windows():
-            self.exe = os.path.join(build_path, "onnxruntime_perf_test.exe")
+            self.exe = os.path.join(path, "onnxruntime_perf_test.exe")
         else:
-            self.exe = os.path.join(build_path, "onnxruntime_perf_test")
-            self.env["LD_LIBRARY_PATH"] = build_path
+            self.exe = os.path.join(path, "onnxruntime_perf_test")
+            self.env["LD_LIBRARY_PATH"] = path
         
         self.test_args = [self.exe] + test_args
         self.env.pop("OMP_WAIT_POLICY", None)
