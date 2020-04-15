@@ -65,7 +65,7 @@
                 <b-form-file multiple id="form-model-input"
                                 v-model="test_data"
                                 placeholder="Select your input/output.pbs..."
-                                :disabled="use_prev_input">
+                                :disabled="disable_prev_input">
                 </b-form-file>
                 </b-form-group>
 

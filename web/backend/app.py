@@ -172,6 +172,9 @@ def get_perf_json(request):
     test_data_dir = os.path.join(file_input_dir, app_config.TEST_DATA_DIR)
     store_files_from_request(request, 'test_data[]', test_data_dir)
 
+    with open(temp_json, 'w') as f:
+        json.dump(json_data, f)
+
     return model_name, temp_json[len(app.root_path) + 1:], json_data
 
 def get_timestamp():
