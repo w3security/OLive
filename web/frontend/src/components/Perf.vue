@@ -367,11 +367,6 @@ export default {
         }
       }
 
-      // run all eps with "ALL" is selected.
-      if (this.perf_tuning_form.execution_provider.indexOf('') > -1) {
-        this.perf_tuning_form.execution_provider = '';
-      }
-
       const metadata = this.perf_tuning_form;
       const json = JSON.stringify(metadata);
 
