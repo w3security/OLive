@@ -393,6 +393,7 @@ export default {
       axios.post(`${this.host}:5000/perf_tuning`, data)
         .then((res) => {
           this.link = `${this.host}:8000/perfresult/${res.data.job_id}`;
+          this.model_running = false;
           this.show_message = true;
           this.message = 'Running job at ';
           this.update_result(res.data.job_id);
@@ -402,6 +403,7 @@ export default {
           this.message = error.toString();
           this.model_running = false;
         });
+      this.job_name = `perf-tuning-${Date.now()}`;
     },
 
     update_result(location) {
