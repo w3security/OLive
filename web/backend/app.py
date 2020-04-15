@@ -405,8 +405,8 @@ def perf_tuning(self, temp_json, input_params):
     
     response_object['logs'] = pipeline.output
     # clean up result dir
-    if os.path.exists(result_dir):
-        rmtree(result_dir)
+    # if os.path.exists(result_dir):
+    #    rmtree(result_dir)
     clean(app.root_path)
     return response_object
 
