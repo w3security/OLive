@@ -336,7 +336,9 @@ export default {
 
     perf_tuning(evt) {
       this.close_all();
-
+      this.model_running = true;
+      this.show_message = true;
+      this.message = `Submitting job ${this.job_name}`;
       evt.preventDefault();
       if ((this.run_option == 0 && this.perf_tuning_form.model == '')
           || (this.run_option == 1 && this.customized_model == null)) {
