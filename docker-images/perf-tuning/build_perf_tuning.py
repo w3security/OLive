@@ -46,7 +46,7 @@ def build_onnxruntime(onnxruntime_dir, config, build_args, build_name, args):
             if "--use_nuphar" in build_args:
                 copy(os.path.join(onnxruntime_dir, "onnxruntime", "core", "providers", "nuphar", "scripts", "symbolic_shape_infer.py"), target_dir)
     else:
-        perf_test_exe = os.path.join(onnxruntime_dir, "build/Linux", config, config, "onnxruntime_perf_test")
+        perf_test_exe = os.path.join(onnxruntime_dir, "build/Linux", config, "onnxruntime_perf_test")
         if not os.path.exists(perf_test_exe) and args.prebuilt:
             print("Not prebuilt onnxruntime found. Building onnxruntime.")
             args.prebuilt = False
