@@ -18,16 +18,15 @@ def copy(src_path, dest_path):
 def build_onnxruntime(onnxruntime_dir, config, build_args, build_name, args):
     if args.variants and not (build_name in args.variants.split(",")):
         return
-    perf_test_exe = os.path.join(onnxruntime_dir, "build/Windows", config, config, "onnxruntime_perf_test.exe")
-    if not os.path.exists(perf_test_exe) and args.prebuilt:
-        print("Not prebuilt onnxruntime found. Building onnxruntime.")
-        args.prebuilt = False
 
     if is_windows():
+        perf_test_exe = os.path.join(onnxruntime_dir, "build/Windows", config, config, "onnxruntime_perf_test.exe")
+        if not os.path.exists(perf_test_exe) and args.prebuilt:
+            print("Not prebuilt onnxruntime found. Building onnxruntime.")
+            args.prebuilt = False
         if not args.prebuilt:
             subprocess.run([os.path.join(onnxruntime_dir, "build.bat"), "--config", config, "--build_shared_lib"] + build_args, cwd=onnxruntime_dir, check=True)
             target_dir = os.path.join("bin", config, build_name)
-        
         if os.path.exists(target_dir):
             shutil.rmtree(target_dir)
         os.makedirs(target_dir)
@@ -47,6 +46,10 @@ def build_onnxruntime(onnxruntime_dir, config, build_args, build_name, args):
             if "--use_nuphar" in build_args:
                 copy(os.path.join(onnxruntime_dir, "onnxruntime", "core", "providers", "nuphar", "scripts", "symbolic_shape_infer.py"), target_dir)
     else:
+        perf_test_exe = os.path.join(onnxruntime_dir, "build/Linux", config, config, "onnxruntime_perf_test.exe")
+        if not os.path.exists(perf_test_exe) and args.prebuilt:
+            print("Not prebuilt onnxruntime found. Building onnxruntime.")
+            args.prebuilt = False
         if not args.prebuilt:
             build_env = os.environ.copy()
             lib_path = os.path.join(onnxruntime_dir, "build/Linux", config, "mklml/src/project_mklml/lib/")
