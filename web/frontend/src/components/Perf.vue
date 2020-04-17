@@ -360,7 +360,7 @@ export default {
       if (this.selected_eps.length > 0) {
         this.perf_tuning_form.execution_provider = '';
         for (let i = 0; i < this.selected_eps.length; i++) {
-          this.perf_tuning_form.execution_provider += this.selected_eps[i].value;
+          this.perf_tuning_form.execution_provider += this.selected_eps[i];
           if (i < this.selected_eps.length - 1) {
             this.perf_tuning_form.execution_provider += ',';
           }

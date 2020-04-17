@@ -18,10 +18,15 @@ def copy(src_path, dest_path):
 def build_onnxruntime(onnxruntime_dir, config, build_args, build_name, args):
     if args.variants and not (build_name in args.variants.split(",")):
         return
+    perf_test_exe = os.path.join(onnxruntime_dir, "build/Windows", config, config, "onnxruntime_perf_test.exe")
+    if not os.path.exists(perf_test_exe) and args.prebuilt:
+        print("Not prebuilt onnxruntime found. Building onnxruntime.")
+        args.prebuilt = False
 
     if is_windows():
-        subprocess.run([os.path.join(onnxruntime_dir, "build.bat"), "--config", config, "--build_shared_lib"] + build_args, cwd=onnxruntime_dir, check=True)
-        target_dir = os.path.join("bin", config, build_name)
+        if not args.prebuilt:
+            subprocess.run([os.path.join(onnxruntime_dir, "build.bat"), "--config", config, "--build_shared_lib"] + build_args, cwd=onnxruntime_dir, check=True)
+            target_dir = os.path.join("bin", config, build_name)
         
         if os.path.exists(target_dir):
             shutil.rmtree(target_dir)
@@ -42,10 +47,12 @@ def build_onnxruntime(onnxruntime_dir, config, build_args, build_name, args):
             if "--use_nuphar" in build_args:
                 copy(os.path.join(onnxruntime_dir, "onnxruntime", "core", "providers", "nuphar", "scripts", "symbolic_shape_infer.py"), target_dir)
     else:
-        build_env = os.environ.copy()
-        lib_path = os.path.join(onnxruntime_dir, "build/Linux", config, "mklml/src/project_mklml/lib/")
-        build_env["LD_LIBRARY_PATH"] += ":" + lib_path
-        subprocess.run([os.path.join(onnxruntime_dir, "build.sh"), "--config", config, "--build_shared_lib"] + build_args, cwd=onnxruntime_dir, check=True, env=build_env)
+        if not args.prebuilt:
+            build_env = os.environ.copy()
+            lib_path = os.path.join(onnxruntime_dir, "build/Linux", config, "mklml/src/project_mklml/lib/")
+            build_env["LD_LIBRARY_PATH"] += ":" + lib_path
+            subprocess.run([os.path.join(onnxruntime_dir, "build.sh"), "--config", config, "--build_shared_lib"] + build_args, cwd=onnxruntime_dir, check=True, env=build_env)
+        
         target_dir = os.path.join("bin", config, build_name)
         
         if os.path.exists(target_dir):
@@ -98,6 +105,9 @@ def parse_arguments():
     parser.add_argument("--llvm_path", help="Path to llvm-build/lib/cmake/llvm")
 
     parser.add_argument("--variants", help="Variants to build. Will build all by default")
+    parser.add_argument("--prebuilt", default=False, 
+        help="Set to true if a prebuilt onnxruntime is available for the specified execution provider." 
+            "Default is False, which will build onnxruntime with all specified execution provider.")
 
     return parser.parse_args()
 
