@@ -57,7 +57,7 @@ def build_onnxruntime(onnxruntime_dir, config, build_args, build_name, args):
             lib_path = os.path.join(linux_build_dir, "mklml/src/project_mklml/lib/")
             build_env["LD_LIBRARY_PATH"] = lib_path
             if args.use_tensorrt:
-                build_env += args.tensorrt_home
+                build_env["LD_LIBRARY_PATH"] += ":" + args.tensorrt_home
             subprocess.run([os.path.join(onnxruntime_dir, "build.sh"), "--config", config, "--build_shared_lib"] + build_args, cwd=onnxruntime_dir, check=True, env=build_env)
         
         target_dir = os.path.join("bin", config, build_name)
