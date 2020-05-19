@@ -20,7 +20,8 @@ def build_onnxruntime(onnxruntime_dir, config, build_args, build_name, args):
         return
 
     if is_windows():
-        perf_test_exe = os.path.join(onnxruntime_dir, "build/Windows", config, config, "onnxruntime_perf_test.exe")
+        windows_build_dir = os.path.join(onnxruntime_dir, "build", "Windows", config, config)
+        perf_test_exe = os.path.join(windows_build_dir, "onnxruntime_perf_test.exe")
         if not os.path.exists(perf_test_exe) and args.prebuilt:
             print("Not prebuilt onnxruntime found. Building onnxruntime.")
             args.prebuilt = False
@@ -31,28 +32,29 @@ def build_onnxruntime(onnxruntime_dir, config, build_args, build_name, args):
             shutil.rmtree(target_dir)
         os.makedirs(target_dir)
         
-        copy(os.path.join(onnxruntime_dir, "build/Windows", config, config, "onnxruntime_perf_test.exe"), target_dir)
-        copy(os.path.join(onnxruntime_dir, "build/Windows", config, config, "onnxruntime.dll"), target_dir)
+        copy(os.path.join(windows_build_dir, "onnxruntime_perf_test.exe"), target_dir)
+        copy(os.path.join(windows_build_dir, "onnxruntime.dll"), target_dir)
         if "mklml" not in build_name:
             if "--use_dnnl" in build_args:
-                copy(os.path.join(onnxruntime_dir, "build/Windows", config, config, "dnnl.dll"), target_dir)
+                copy(os.path.join(windows_build_dir, "dnnl.dll"), target_dir)
             if args.use_cuda or args.use_tensorrt:
                 copy(os.path.join(args.cudnn_home, "bin/cudnn*.dll"), target_dir)
             if args.use_tensorrt:
                 copy(os.path.join(args.tensorrt_home, "lib/nvinfer.dll"), target_dir)
         else:
             if "--use_tvm" in build_args:
-                copy(os.path.join(onnxruntime_dir, "build", "Windows", config, config, "tvm.dll"), target_dir)
+                copy(os.path.join(windows_build_dir, "tvm.dll"), target_dir)
             if "--use_nuphar" in build_args:
                 copy(os.path.join(onnxruntime_dir, "onnxruntime", "core", "providers", "nuphar", "scripts", "symbolic_shape_infer.py"), target_dir)
     else:
-        perf_test_exe = os.path.join(onnxruntime_dir, "build/Linux", config, "onnxruntime_perf_test")
+        linux_build_dir = os.path.join(onnxruntime_dir, "build", "Linux", config)
+        perf_test_exe = os.path.join(linux_build_dir, "onnxruntime_perf_test")
         if not os.path.exists(perf_test_exe) and args.prebuilt:
             print("Not prebuilt onnxruntime found. Building onnxruntime.")
             args.prebuilt = False
         if not args.prebuilt:
             build_env = os.environ.copy()
-            lib_path = os.path.join(onnxruntime_dir, "build/Linux", config, "mklml/src/project_mklml/lib/")
+            lib_path = os.path.join(linux_build_dir, "mklml/src/project_mklml/lib/")
             build_env["LD_LIBRARY_PATH"] = lib_path
             if args.use_tensorrt:
                 build_env += args.tensorrt_home
@@ -64,12 +66,12 @@ def build_onnxruntime(onnxruntime_dir, config, build_args, build_name, args):
             shutil.rmtree(target_dir)
         os.makedirs(target_dir)
         
-        copy(os.path.join(onnxruntime_dir, "build/Linux", config, "onnxruntime_perf_test"), target_dir)
-        copy(os.path.join(onnxruntime_dir, "build/Linux", config, "libonnxruntime.so*"), target_dir)
-        copy(os.path.join(onnxruntime_dir, "build/Linux", config, "mklml/src/project_mklml/lib/*.so*"), target_dir)
+        copy(os.path.join(linux_build_dir, "onnxruntime_perf_test"), target_dir)
+        copy(os.path.join(linux_build_dir, "libonnxruntime.so*"), target_dir)
+        copy(os.path.join(linux_build_dir, "mklml/src/project_mklml/lib/*.so*"), target_dir)
         if "all_eps" in build_name:
             if "--use_dnnl" in build_args:
-                copy(os.path.join(onnxruntime_dir, "build/Linux", config, "dnnl/install/lib/libdnnl.so*"), target_dir)
+                copy(os.path.join(linux_build_dir, "dnnl/install/lib/libdnnl.so*"), target_dir)
             if args.use_cuda or args.use_tensorrt:
                 copy(os.path.join(args.cudnn_home, "lib64/libcudnn.so*"), target_dir)
                 copy(os.path.join(args.cudnn_home, "lib64/libnvrtc.so*"), target_dir)
@@ -80,12 +82,12 @@ def build_onnxruntime(onnxruntime_dir, config, build_args, build_name, args):
             
         if "mklml" in build_name:
             if "--use_tvm" in build_args:
-                copy(os.path.join(onnxruntime_dir, "build/Linux", config, "external", "tvm", "libtvm.so*"), target_dir)
+                copy(os.path.join(linux_build_dir, "external", "tvm", "libtvm.so*"), target_dir)
             if "--use_nuphar" in build_args:
                 copy(os.path.join(onnxruntime_dir, "onnxruntime", "core", "providers", "nuphar", "scripts", "symbolic_shape_infer.py"), target_dir)
         if "ngraph" in build_name:
-            copy(os.path.join(onnxruntime_dir, "build/Linux", config, "external/ngraph/lib/lib*.so*"), target_dir)
-            copy(os.path.join(onnxruntime_dir, "build/Linux", config, "external", "tvm", "libtvm.so*"), target_dir)
+            copy(os.path.join(linux_build_dir, "external/ngraph/lib/lib*.so*"), target_dir)
+            copy(os.path.join(linux_build_dir, "external", "tvm", "libtvm.so*"), target_dir)
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
