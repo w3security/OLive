@@ -462,6 +462,7 @@ if __name__ == "__main__":
     allProviders = ["cpu_openmp", "mklml", "dnnl", "cpu", "tensorrt", "ngraph", "cuda", "nuphar"]
     parallel_eps = ["cpu_openmp", "mklml", "dnnl", "cpu", "ngraph"]
     omp_eps = ["cpu_openmp", "mklml", "dnnl", "ngraph", "nuphar"]
+    mlas_eps = ["cpu", "cuda", "tensorrt"]
 
     # Get all execution providers needed to run in current context
     providers = [p for p in args.execution_provider.split(",")
@@ -485,14 +486,14 @@ if __name__ == "__main__":
     profile_candidates = []
     failed = []
     for build_name in providers:
-        if "cpu" in build_name:
-            build_path = os.path.join(bin_dir, "cpu")
+        if build_name in mlas_eps:
+            build_path = os.path.join(bin_dir, "mlas_eps")
         elif "mklml" in build_name or "nuphar" in build_name:
             build_path = os.path.join(bin_dir, "mklml")
         elif "ngraph" in build_name:
             build_path = os.path.join(bin_dir, "ngraph")
         elif build_name in allProviders:
-            build_path = os.path.join(bin_dir, "all_eps")
+            build_path = os.path.join(bin_dir, "omp_eps")
         else:
             raise ValueError(
                 "Provider %s is not currently supported. \

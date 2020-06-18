@@ -161,24 +161,6 @@ if __name__ == "__main__":
         build_onnxruntime(args.onnxruntime_home, args.config, [], build_name, args)
     else:
         build_args = []
-        # Build CPU with no OpenMp as a separate build
-        build_onnxruntime(args.onnxruntime_home, args.config, build_args, "cpu", args)
-
-        nuphar_args = ["--use_tvm", "--use_llvm", "--use_nuphar"] if args.use_nuphar else []
-        nuphar_args = nuphar_args + ["--llvm_path", args.llvm_path] if args.llvm_path else nuphar_args
-
-        if args.use_mklml:
-            # Build mklml as a separate build
-            build_onnxruntime(args.onnxruntime_home, args.config, ["--use_mklml"] + nuphar_args, "mklml", args)
-        elif args.use_nuphar:
-            raise ValueError("Please build with --use_mklml to use nuphar. ")
-
-        if args.use_ngraph:
-            # Build ngraph as a separate build
-            build_onnxruntime(args.onnxruntime_home, args.config, ["--use_openmp", "--use_ngraph"], "ngraph",
-                            args)
-
-        build_args = ["--use_dnnl", "--use_openmp"]
 
         if args.use_cuda:
             build_args += ["--use_cuda"]
@@ -201,5 +183,24 @@ if __name__ == "__main__":
                 if args.cudnn_home:
                     build_args = build_args + ["--cudnn_home", args.cudnn_home]
 
+        # Build CPU with no OpenMp as a separate build
+        build_onnxruntime(args.onnxruntime_home, args.config, build_args, "mlas_eps", args)
+
+        nuphar_args = ["--use_tvm", "--use_llvm", "--use_nuphar"] if args.use_nuphar else []
+        nuphar_args = nuphar_args + ["--llvm_path", args.llvm_path] if args.llvm_path else nuphar_args
+
+        if args.use_mklml:
+            # Build mklml as a separate build
+            build_onnxruntime(args.onnxruntime_home, args.config, ["--use_mklml"] + nuphar_args, "mklml", args)
+        elif args.use_nuphar:
+            raise ValueError("Please build with --use_mklml to use nuphar. ")
+
+        if args.use_ngraph:
+            # Build ngraph as a separate build
+            build_onnxruntime(args.onnxruntime_home, args.config, ["--use_openmp", "--use_ngraph"], "ngraph",
+                            args)
+
+        build_args = ["--use_dnnl", "--use_openmp"]       
+
         # Build cpu_openmp, cuda, dnnl, nuphar, ngraph and tensorrt in one build.
-        build_onnxruntime(args.onnxruntime_home, args.config, build_args, "all_eps", args)
+        build_onnxruntime(args.onnxruntime_home, args.config, build_args, "omp_eps", args)
