@@ -85,19 +85,6 @@ def threads_num_tuning(optimization_config, tuning_combo):
         logger.error("Optimization failed for tuning combo {}".format(tuning_combo))
         pass
 
-    if provider == "TensorrtExecutionProvider" and optimization_config.trt_fp16_enabled and optimization_config.fp32_enabled:
-        os.environ["ORT_TENSORRT_FP16_ENABLE"] = "0"
-        try:
-            for inter in optimization_config.inter_thread_num_list:
-                test_params["inter_op_num_threads"] = inter
-                for intra in optimization_config.intra_thread_num_list:
-                    test_params["intra_op_num_threads"] = intra
-                    threads_num_binary_search(optimization_config, test_params, tuning_results, cpu_cores)
-
-        except Exception:
-            logger.error("Optimization failed for tuning combo {}".format(tuning_combo))
-            pass
-
     return tuning_results
 
 
@@ -198,37 +185,11 @@ def create_inference_session(model_path, test_params=None):
 
 
 def get_benchmark(optimization_config, test_params=None):
-
-    manager = Manager()
-    test_result = manager.dict()
+    test_result = dict()
     if optimization_config.throughput_tuning_enabled:
-        main_process = Process(name="main_process", target=get_throughput,
-                               args=(optimization_config, test_params, test_result))
+        get_throughput(optimization_config, test_params, test_result)
     else:
-        main_process = Process(name="main_process", target=get_latency,
-                               args=(optimization_config, test_params, test_result))
-
-    process_list = []
-    num_of_background = optimization_config.concurrency_num - 1
-    if num_of_background > 0:
-        synchronizer = Barrier(num_of_background + 1)
-        for i in range(0, num_of_background):
-            p = Process(name="{}_{}".format(SUB_PROCESS_NAME_PREFIX, i), target=concurrent_inference,
-                        args=(synchronizer, optimization_config, test_params))
-            p.start()
-            process_list.append(p)
-        synchronizer.wait()
-
-    # execute main func, we only collect benchmark from this main func
-    main_process.start()
-    main_process.join()
-
-    # once the main func finished, stop child process
-    for p in process_list:
-        if p.is_alive():
-            p.terminate()
-            logger.info("PID {} is killed".format(p.pid))
-
+        get_latency(optimization_config, test_params, test_result)
     return dict(test_result)
 
 

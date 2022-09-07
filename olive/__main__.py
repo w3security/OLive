@@ -48,7 +48,6 @@ def get_opt_config(args):
             warmup_num=config_dict.get("warmup_num", WARMUP_NUM),
             test_num=config_dict.get("test_num", TEST_NUM),
             trt_fp16_enabled=config_dict.get("trt_fp16_enabled", False),
-            fp32_enabled=config_dict.get("fp32_enabled", False),
             openmp_enabled=config_dict.get("openmp_enabled", False),
             inter_thread_num_list=config_dict.get("inter_thread_num_list", [None]),
             intra_thread_num_list=config_dict.get("intra_thread_num_list", [None]),
@@ -102,7 +101,6 @@ def get_opt_config(args):
             warmup_num=args.warmup_num if args.warmup_num else WARMUP_NUM,
             test_num=args.test_num if args.test_num else TEST_NUM,
             trt_fp16_enabled=args.trt_fp16_enabled,
-            fp32_enabled=args.fp32_enabled,
             openmp_enabled=args.openmp_enabled,
             inter_thread_num_list=inter_thread_num_list,
             intra_thread_num_list=intra_thread_num_list,
@@ -179,7 +177,7 @@ def get_cvt_config(args):
             inputs_schema=inputs_schema,
             outputs_schema=outputs_schema,
             model_framework=model_framework,
-            onnx_opset=config_dict.get("onnx_opset", 12),
+            onnx_opset=config_dict.get("onnx_opset"),
             onnx_model_path=config_dict.get("onnx_model_path", ONNX_MODEL_PATH),
             sample_input_data_path=config_dict.get("sample_input_data_path")
         )
@@ -246,14 +244,14 @@ def optimize_in_conda_env(args):
     conda_env_name = "OLive_optimization_{}".format(str(time.time()).split(".")[0])
     logger.info("new created conda env name is {}".format(conda_env_name))
 
-    python_version = "3.7"
+    python_version = "3.6"
     use_gpu = args.use_gpu if args.use_gpu else False
     onnxruntime_version = args.onnxruntime_version if args.onnxruntime_version else ONNXRUNTIME_VERSION
     opt_args_str = ""
     for key in args.__dict__.keys():
         if args.__dict__[key]:
             if key not in ["use_conda", "use_docker", "use_gpu", "onnxruntime_version", "func"]:
-                if key in ["quantization_enabled", "transformer_enabled", "trt_fp16_enabled", "openmp_enabled", "throughput_tuning_enabled", "fp32_enabled"]:
+                if key in ["quantization_enabled", "transformer_enabled", "trt_fp16_enabled", "openmp_enabled", "throughput_tuning_enabled"]:
                     opt_args_str = opt_args_str + "--{} ".format(key)
                 else:
                     opt_args_str = opt_args_str + "--{} {} ".format(key, args.__dict__[key])
@@ -269,7 +267,7 @@ def convert_in_conda_env(args):
     conda_env_name = "OLive_conversion_{}".format(str(time.time()).split(".")[0])
     logger.info("new created conda env name is {}".format(conda_env_name))
 
-    python_version = "3.7"
+    python_version = "3.6"
     cvt_args_str = ""
     for key in args.__dict__.keys():
         if args.__dict__[key]:
@@ -368,7 +366,6 @@ def main():
     parser_opt.add_argument("--output_names", help="output names for onnxruntime session inference")
     parser_opt.add_argument("--providers_list", help="providers used for perftuning")
     parser_opt.add_argument("--trt_fp16_enabled", help="whether enable fp16 mode for TensorRT", action="store_true")
-    parser_opt.add_argument("--fp32_enabled", help="whether enable fp32 mode", action="store_true")
     parser_opt.add_argument("--openmp_enabled", help="whether the onnxruntime package is built with OpenMP", action="store_true")
     parser_opt.add_argument("--quantization_enabled", help="whether enable the quantization or not", action="store_true")
     parser_opt.add_argument("--transformer_enabled", help="whether enable transformer optimization", action="store_true")
@@ -405,15 +402,15 @@ def main():
     parser_cvt.add_argument("--model_path", help="model path for conversion")
     parser_cvt.add_argument("--model_framework", help="model original framework")
     parser_cvt.add_argument("--model_root_path", help="model folder for conversion, only for PyTorch model")
-    parser_cvt.add_argument("--inputs_schema", help="input's names, types, and shapes")
-    parser_cvt.add_argument("--outputs_schema", help="output's names, types, and shapes")
+    parser_cvt.add_argument("--inputs_schema", help="input’s names, types, and shapes")
+    parser_cvt.add_argument("--outputs_schema", help="output’s names, types, and shapes")
     parser_cvt.add_argument("--input_names", help="input names for model framework conversion")
     parser_cvt.add_argument("--input_shapes", help="input shapes for model framework conversion")
     parser_cvt.add_argument("--input_types", help="input types for model framework conversion")
     parser_cvt.add_argument("--output_names", help="output names for model framework conversion")
     parser_cvt.add_argument("--output_shapes", help="output shapes for model framework conversion")
     parser_cvt.add_argument("--output_types", help="output types for model framework conversion")
-    parser_cvt.add_argument("--onnx_opset", help="target opset version for conversion", type=int, default=12)
+    parser_cvt.add_argument("--onnx_opset", help="target opset version for conversion", type=int)
     parser_cvt.add_argument("--onnx_model_path", help="ONNX model path as conversion output", default=ONNX_MODEL_PATH)
     parser_cvt.add_argument("--sample_input_data_path", help="path to sample_input_data.npz")
     # arguments for environment setup
